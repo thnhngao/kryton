@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHAM TIEN THANH - Payment Full</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700&display=swap');
+        
+        body { 
+            font-family: 'Lexend', sans-serif; 
+            margin: 0; background-color: #000; color: white;
+            overflow-y: auto; min-height: 100vh;
+        }
+
+        #video-bg {
+            position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
+            z-index: -1; object-fit: cover; filter: brightness(0.5);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+        }
+
+        .qr-frame {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .success-checkmark { width: 80px; height: 115px; margin: 0 auto; }
+        .check-icon {
+            width: 80px; height: 80px; position: relative; border-radius: 50%;
+            box-sizing: content-box; border: 4px solid #4CAF50;
+        }
+        .check-icon::after {
+            content: ''; position: absolute; top: 23px; left: 15px; width: 45px; height: 22px;
+            border-left: 4px solid #4CAF50; border-bottom: 4px solid #4CAF50;
+            transform: rotate(-45deg); opacity: 0; animation: checkmark 0.8s ease-in-out forwards;
+        }
+        @keyframes checkmark {
+            0% { height: 0; width: 0; opacity: 1; }
+            20% { height: 0; width: 45px; opacity: 1; }
+            40% { height: 22px; width: 45px; opacity: 1; }
+            100% { height: 22px; width: 45px; opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start p-6">
+
+    <video loop playsinline id="video-bg">
+        <source src="https://raw.githubusercontent.com/oibog/bank/main/MIKU MUSIC🎶.mp4" type="video/mp4">
+    </video>
+
+    <div class="glass-card w-full max-w-lg p-10 text-center my-12">
+        
+        <div class="mb-8">
+            <div class="w-32 h-32 mx-auto rounded-full p-1 bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-2xl mb-5 overflow-hidden border border-white/20">
+
+
+
+
+
+
+                
+                <img src="https://sf-static.upanhlaylink.com/img/image_202602284818888e318f48b799bb1a6bc38d80fe.jpg"
+                     alt="PHAM TIEN THANH" class="w-full h-full rounded-full object-cover">
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight italic">PHAM TIEN THANH</h1>
+            <p class="text-cyan-400 text-sm font-mono mt-3 tracking-widest bg-cyan-500/10 py-1 px-4 rounded-full w-fit mx-auto border border-cyan-500/20 uppercase">
+                MB BANK: 0389470659
+            </p>
+        </div>
+
+        <div class="space-y-6 text-left">
+            <div>
+                <label class="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em] ml-2">Số tiền muốn chuyển (Tối thiểu 5,000 VNĐ)</label>
+                <input type="text" id="amount_input" placeholder="Ví dụ: 5,000" 
+                    class="w-full mt-2 bg-white/5 border border-white/10 p-5 rounded-2xl text-white outline-none focus:border-cyan-500 transition-all text-2xl font-bold tracking-wider">
+            </div>
+            <div>
+                <label class="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em] ml-2">Nội Dung</label>
+                <input type="text" id="message" placeholder="bank cho THANH" 
+                    class="w-full mt-2 bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-cyan-500 transition-all">
+            </div>
+            <button onclick="generateQR()" 
+                class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-5 rounded-2xl shadow-xl transition-all active:scale-95 uppercase tracking-widest text-sm border border-white/10">
+                Xác nhận tạo mã QR
+            </button>
+        </div>
+
+        <div id="qr-area" class="hidden mt-12 pb-6">
+            <div class="qr-frame inline-block transform transition-all duration-500 scale-100">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <span class="text-xs font-black text-red-600 italic">VIETQR</span>
+                    <span class="text-xs font-black text-blue-900 uppercase">MB BANK</span>
+                </div>
+                <img id="qr-code" src="" alt="Mã QR" class="w-64 h-64 object-contain mx-auto">
+                <div class="mt-4 border-t pt-4 flex justify-between px-2 text-[9px] text-gray-400 font-bold tracking-widest">
+                    <span>NAPAS 247</span>
+                    <span>PHAM TIEN THANH </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video-bg');
+        const amountInput = document.getElementById('amount_input');
+
+        // Tự động thêm dấu phẩy khi gõ số tiền đầy đủ
+        amountInput.addEventListener('input', function(e) {
+            let value = this.value.replace(/,/g, ''); 
+            if (!isNaN(value) && value !== "") {
+                this.value = parseInt(value).toLocaleString('en-US'); 
+            }
+        });
+
+        window.onload = function() {
+            Swal.fire({
+                title: 'Chào mừng!',
+                text: 'Bank đi nào!',
+                iconHtml: '<img src="https://sf-static.upanhlaylink.com/img/image_202602284818888e318f48b799bb1a6bc38d80fe.jpg" style="width:100%; border-radius:50%">', // ảnh của thông báo
+                confirmButtonText: 'OK',
+                background: '#111',
+                color: '#fff',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    video.play();
+                    video.muted = false;
+                }
+            });
+        };
+
+        function generateQR() {
+            let rawValue = amountInput.value.replace(/,/g, '');
+            const realAmount = parseInt(rawValue);
+            const message = document.getElementById('message').value || " PHAM TIEN THANH cảm ơn!";
+            const qrArea = document.getElementById('qr-area');
+            const qrImg = document.getElementById('qr-code');
+
+            if (!realAmount || realAmount <= 0) {
+                Swal.fire({ title: 'Lỗi!', text: 'Vui lòng nhập số tiền', icon: 'error', background: '#111', color: '#fff' });
+                return;
+            }
+            
+            // Chặn tối thiểu 5,000đ
+            if (realAmount < 5000) {
+                Swal.fire({ 
+                    title: 'Số tiền không đủ!', 
+                    text: 'Vui lòng bank tối thiểu 5,000 VNĐ nhé!', 
+                    icon: 'warning', 
+                    background: '#111', 
+                    color: '#fff' 
+                });
+                return;
+            }
+
+            const qrUrl = `https://img.vietqr.io/image/MB-0389470659-compact2.png?amount=${realAmount}&addInfo=${encodeURIComponent(message)}&accountName=PHAM TIEN THANH`;
+            
+            qrImg.src = qrUrl;
+
+            Swal.fire({
+                title: 'Thành công!',
+                html: '<div class="success-checkmark"><div class="check-icon"></div></div><p>Đã tạo mã QR: ' + amountInput.value + ' VNĐ</p>',
+                showConfirmButton: false,
+                timer: 1800,
+                background: '#111', color: '#fff'
+            });
+
+            confetti({ 
+                particleCount: 150, spread: 100, origin: { y: 0.7 },
+                colors: ['#00FFFF', '#ffffff', '#0080FF']
+            });
+
+            qrArea.classList.remove('hidden');
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 400);
+        }
+    </script>
+</body>
+</html>
+
